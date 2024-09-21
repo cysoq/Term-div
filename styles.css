@@ -1,0 +1,32 @@
+:root {
+    --border_width: 10px;
+    --tab_height: 10vh;
+}
+
+html *{
+    background-color: black;
+    padding: 0;
+    margin: 0;
+}
+
+.body {
+    height: 100vh;
+}
+
+.tab {
+    background-color: grey;
+    height: var(--tab_height);
+}
+
+.window {
+    background-color: rgb(73, 73, 73);
+    height: calc(100vh - var(--tab_height));
+}
+
+.pane {
+    box-sizing: border-box;
+    position: relative;
+    height: 100%;
+    border: var(--border_width) solid black;
+    background-color: rgb(155, 27, 27);
+}
