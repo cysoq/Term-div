@@ -27,6 +27,6 @@ html *{
     box-sizing: border-box;
     position: relative;
     height: 100%;
-    border: var(--border_width) solid black;
+    border: var(--border_width) solid rgb(55, 173, 37);
     background-color: rgb(155, 27, 27);
 }
