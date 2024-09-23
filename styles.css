@@ -1,12 +1,13 @@
 :root {
     --border_width: 10px;
-    --tab_height: 10vh;
+    --tab_height: 8vh;
 }
 
 html *{
     background-color: black;
     padding: 0;
     margin: 0;
+    color: white;
 }
 
 .body {
@@ -14,12 +15,13 @@ html *{
 }
 
 .tab {
-    background-color: grey;
+    background-color: rgb(0, 0, 0);
     height: var(--tab_height);
 }
 
-.window {
-    background-color: rgb(73, 73, 73);
+.termWindow {
+    position: relative;
+    background-color: rgb(0, 0, 0);
     height: calc(100vh - var(--tab_height));
 }
 
@@ -27,6 +29,10 @@ html *{
     box-sizing: border-box;
     position: relative;
     height: 100%;
-    border: var(--border_width) solid rgb(55, 173, 37);
-    background-color: rgb(155, 27, 27);
+    border: var(--border_width) solid rgb(39, 39, 39);
+    background-color: rgb(0, 0, 0);
+}
+
+.selected {
+    border-color: rgb(255, 255, 255);
 }
