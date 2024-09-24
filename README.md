@@ -9,12 +9,13 @@ Going to change the structure of this project to create and save a Tree Structur
 + The orientation property tells us how the panes are divided (either horizontal or vertical).
 + Leaf nodes (panes without further splits) have an orientation of null and no children.
 + Example structure:
-
+```
 +---------------------------+
 |          Pane A            |
 +---------------------------+
 |    Pane B    |   Pane C    |
 +---------------------------+
+```
 
 ``` json
 {
@@ -36,7 +37,7 @@ Going to change the structure of this project to create and save a Tree Structur
 }
 
 ```
-
+```
 +----------------------------+
 |          Pane A             |
 +----------------------------+
@@ -44,7 +45,7 @@ Going to change the structure of this project to create and save a Tree Structur
 |              +--------------+
 |              |   Pane D      |
 +----------------------------+
-
+```
 ``` json
 {
   "pane": "Pane A",
