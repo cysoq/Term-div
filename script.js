@@ -6,11 +6,60 @@ let activePane = null;
 
 let num = 1
 
+// function print_dict(myDict) {
+//     for (let key in myDict) {
+//         if (myDict.hasOwnProperty(key)) {
+//             console.log(`${key}: ${myDict[key]}`);
+//         }
+//     }
+// }
+
+function adjacent_panes(selectedPane) {
+    const tolerance = 1;  
+
+    let adjacentPanes = {
+        left: [],
+        right: [],
+        top: [],
+        bottom: []
+    };
+
+    const selectedPaneRect = selectedPane.getBoundingClientRect()
+    // console.log(`Selected Pane left: ${selectedPaneRect.left}, ${selectedPaneRect.right}, ${selectedPaneRect.top}, ${selectedPaneRect.bottom}`)
+
+    const panes = Array.from(document.getElementsByClassName("pane"));
+    panes.forEach(pane => {
+        if (pane != selectedPane) {
+            const paneRect = pane.getBoundingClientRect()
+            console.log(`Other Pane left: ${paneRect.left}, ${paneRect.right}, ${paneRect.top}, ${paneRect.bottom}`)
+    
+            if (Math.abs(paneRect.top - selectedPaneRect.bottom) <= tolerance) {
+                // console.log(`adjacent bottom: ${pane.textContent.trim()}`)
+                adjacentPanes.bottom.push(pane);
+            }
+            if (Math.abs(paneRect.bottom - selectedPaneRect.top) <= tolerance) {
+                // console.log(`adjacent top: ${pane.textContent.trim()}`)
+                adjacentPanes.top.push(pane);
+            }
+            if (Math.abs(paneRect.left - selectedPaneRect.right) <= tolerance) {
+                // console.log(`adjacent right: ${pane.textContent.trim()}`)
+                adjacentPanes.right.push(pane);
+            }
+            if (Math.abs(paneRect.right - selectedPaneRect.left) <= tolerance) {
+                // console.log(`adjacent left: ${pane.textContent.trim()}`)
+                adjacentPanes.left.push(pane)
+            }
+        }
+    });
+    return adjacentPanes;
+}
+
 function selected_pane(pane) {
     if (activePane !== null && activePane !== pane) {
         activePane.classList.remove('selected');
     }
     activePane = pane;
+    adjacent_panes(activePane);
     pane.classList.add('selected');
 }
 
@@ -163,13 +212,13 @@ document.addEventListener('keydown', function(event) {
     if (event.ctrlKey && event.shiftKey && event.code === 'KeyE') {
         event.preventDefault(); // Prevent the default action if needed
         split_vert();
-        console.log(exportPanePositions());
+        // console.log(exportPanePositions());
 
     }
     if (event.ctrlKey && event.shiftKey && event.code === 'KeyO') {
         event.preventDefault(); // Prevent the default action if needed
         split_hor();
-        console.log(exportPanePositions());
+        // console.log(exportPanePositions());
 
     }
 });
