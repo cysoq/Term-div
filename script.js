@@ -31,22 +31,18 @@ function adjacent_panes(selectedPane) {
     panes.forEach(pane => {
         if (pane != selectedPane) {
             const paneRect = pane.getBoundingClientRect()
-            console.log(`Other Pane left: ${paneRect.left}, ${paneRect.right}, ${paneRect.top}, ${paneRect.bottom}`)
+            // console.log(`Other Pane left: ${paneRect.left}, ${paneRect.right}, ${paneRect.top}, ${paneRect.bottom}`)
     
             if (Math.abs(paneRect.top - selectedPaneRect.bottom) <= tolerance) {
-                // console.log(`adjacent bottom: ${pane.textContent.trim()}`)
                 adjacentPanes.bottom.push(pane);
             }
             if (Math.abs(paneRect.bottom - selectedPaneRect.top) <= tolerance) {
-                // console.log(`adjacent top: ${pane.textContent.trim()}`)
                 adjacentPanes.top.push(pane);
             }
             if (Math.abs(paneRect.left - selectedPaneRect.right) <= tolerance) {
-                // console.log(`adjacent right: ${pane.textContent.trim()}`)
                 adjacentPanes.right.push(pane);
             }
             if (Math.abs(paneRect.right - selectedPaneRect.left) <= tolerance) {
-                // console.log(`adjacent left: ${pane.textContent.trim()}`)
                 adjacentPanes.left.push(pane)
             }
         }
@@ -206,9 +202,85 @@ function split_hor() {
     term_window.appendChild(newPane);
 }
 
+function move_panes(direction) {
+    const tolerance = 1;  
+    if (direction === "ArrowUp") {
+        let up_panes = adjacent_panes(activePane)["top"]
+        if (up_panes.length === 0) {
+            return
+        } else {
+            let activePaneRect =  activePane.getBoundingClientRect()
+            up_panes.forEach(pane => {
+                // Will get leftmost top pane to go to
+                let pane_rect = pane.getBoundingClientRect()
+                if ((Math.abs(pane_rect.left - activePaneRect.left) <= tolerance) || (pane_rect.left < activePaneRect.left)) {
+                    selected_pane(pane)
+                }
+
+            });
+        }
+        
+    }
+
+    if (direction === "ArrowDown") {
+        let up_panes = adjacent_panes(activePane)["bottom"]
+        if (up_panes.length === 0) {
+            return
+        } else {
+            let activePaneRect =  activePane.getBoundingClientRect()
+            up_panes.forEach(pane => {
+                // Will get leftmost top pane to go to
+                let pane_rect = pane.getBoundingClientRect()
+                if ((Math.abs(pane_rect.left - activePaneRect.left) <= tolerance) || (pane_rect.left < activePaneRect.left)) {
+                    selected_pane(pane)
+                }
+
+            });
+        }
+        
+    }
+
+    if (direction === "ArrowRight") {
+        let up_panes = adjacent_panes(activePane)["right"]
+        if (up_panes.length === 0) {
+            return
+        } else {
+            let activePaneRect =  activePane.getBoundingClientRect()
+            up_panes.forEach(pane => {
+                // Will get Top most top pane to go to
+                let pane_rect = pane.getBoundingClientRect()
+                if ((Math.abs(pane_rect.top - activePaneRect.top) <= tolerance) || (pane_rect.top < activePaneRect.top)) {
+                    selected_pane(pane)
+                }
+
+            });
+        }
+        
+    }
+
+    if (direction === "ArrowLeft") {
+        let up_panes = adjacent_panes(activePane)["left"]
+        if (up_panes.length === 0) {
+            return
+        } else {
+            let activePaneRect =  activePane.getBoundingClientRect()
+            up_panes.forEach(pane => {
+                // Will get Top most top pane to go to
+                let pane_rect = pane.getBoundingClientRect()
+                if ((Math.abs(pane_rect.top - activePaneRect.top) <= tolerance) || (pane_rect.top < activePaneRect.top)) {
+                    selected_pane(pane)
+                }
+
+            });
+        }
+        
+    }
+
+}
+
 
 document.addEventListener('keydown', function(event) {
-    // Check if Backslash is pressed
+    // Splitting Panes
     if (event.ctrlKey && event.shiftKey && event.code === 'KeyE') {
         event.preventDefault(); // Prevent the default action if needed
         split_vert();
@@ -220,6 +292,27 @@ document.addEventListener('keydown', function(event) {
         split_hor();
         // console.log(exportPanePositions());
 
+    }
+
+    // Changing Panes
+    if (event.altKey && event.code === 'ArrowUp') {
+        event.preventDefault(); // Prevent the default action if needed
+        move_panes("ArrowUp");
+    }
+
+    if (event.altKey && event.code === 'ArrowDown') {
+        event.preventDefault(); // Prevent the default action if needed
+        move_panes("ArrowDown");
+    }
+
+    if (event.altKey && event.code === 'ArrowLeft') {
+        event.preventDefault(); // Prevent the default action if needed
+        move_panes("ArrowLeft");
+    }
+
+    if (event.altKey && event.code === 'ArrowRight') {
+        event.preventDefault(); // Prevent the default action if needed
+        move_panes("ArrowRight");
     }
 });
 
