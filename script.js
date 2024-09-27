@@ -6,13 +6,151 @@ let activePane = null;
 
 let num = 1
 
-// function print_dict(myDict) {
-//     for (let key in myDict) {
-//         if (myDict.hasOwnProperty(key)) {
-//             console.log(`${key}: ${myDict[key]}`);
-//         }
-//     }
-// }
+let pane_config = {
+    "name": "pane0",
+    "root": true,
+    "node": true,
+    "orientation": null,
+    "width": 100,
+    "height": 100,
+    "posL": 0,
+    "posT": 0,
+    "branch": []
+}
+
+function get_selected_pane_name() {
+    return ("pane" + String(activePane.dataset.order))
+}
+
+function get_pane_name(pane) {
+    return ("pane" + String(pane.dataset.order))
+}
+
+function update_pane_config(pane_config, parent, child, orientation) {
+    // Base case: Check if the current pane's name matches the target name
+    if (pane_config.name === parent) {
+
+        // update pane_config to a branch
+        pane_config.name = "branch"
+        pane_config.node = false
+        pane_config.orientation = orientation
+
+        
+        // add children
+        let pane_parent = {
+            "name": parent,
+            "root": false,
+            "node": true,
+            "orientation": null,
+            "width": pane_config.width,
+            "height": pane_config.height,
+            "posL": pane_config.posL,
+            "posT": pane_config.posT,
+            "branch": []
+        }
+        let pane_child = {
+            "name": child,
+            "root": false,
+            "node": true,
+            "orientation": null,
+            "width": pane_config.width,
+            "height": pane_config.height,
+            "posL": pane_config.posL,
+            "posT": pane_config.posT,
+            "branch": [],
+        }
+
+        if (orientation == "horizontal") {
+            pane_parent.height = pane_config.height * .5
+
+            pane_child.height = pane_config.height * .5
+            pane_child.posT = pane_child.posT + (pane_config.height * .5)
+        } else if (orientation == "vertical") {
+            pane_parent.width = pane_config.width * .5
+
+            pane_child.width = pane_config.width * .5
+            pane_child.posL = pane_config.posL + (pane_config.width * .5)
+
+        }
+        pane_config.branch.push(pane_parent)
+        pane_config.branch.push(pane_child)        
+        return pane_config;
+    }
+
+    // Recursively search through branch array
+    for (let branchItem of pane_config.branch) {
+        let foundPane = update_pane_config(branchItem, parent, child, orientation);
+        if (foundPane) {
+            // add child
+            return foundPane; // Return if match found in the branch
+        }
+    }
+
+    // Return null if no match is found in this branch
+    return null;
+}
+
+function update_split_pane_config(parent, child, orientation) {
+    update_pane_config(pane_config, parent, child, orientation)
+}
+
+function remove_pane_helper(pane_config, pane) {
+    let found_pane = null
+    pane_config.branch.forEach(childPane => {
+        if (childPane.name === pane) {
+            found_pane = childPane
+        }
+    })
+    if (found_pane !== null) {
+        console.log(pane_config)
+        console.log(found_pane)
+        return pane_config;
+    }
+
+    // Recursively search through branch array
+    for (let branchItem of pane_config.branch) {
+        let foundPane = update_pane_config(branchItem, pane);
+        if (foundPane) {
+            // add child
+            return foundPane; // Return if match found in the branch
+        }
+    }
+
+    // Return null if no match is found in this branch
+    return null;
+}
+
+function remove_pane() {
+    remove_pane_helper(pane_config, get_pane_name(activePane))
+}
+
+function get_highest_order() {
+    const panes = document.querySelectorAll('.pane');
+
+    let highest_order = -Infinity
+    // Loop through each element and print its content
+    panes.forEach(pane => {
+        if (parseInt(pane.dataset.order) > highest_order) {
+            highest_order = parseInt(pane.dataset.order)
+        }
+    });
+    return highest_order;
+}
+
+function create_new_pane() {
+    let highest_order = get_highest_order()
+
+    var newPane = document.createElement("div");
+
+    newPane.style.position = "absolute";
+    newPane.className = "pane";  // Set class
+    newPane.dataset.order = String(parseInt(highest_order) + 1)
+    newPane.textContent = newPane.dataset.order;
+    newPane.addEventListener('click', () => {
+        selected_pane(newPane);
+    });
+    return newPane;
+}
 
 function adjacent_panes(selectedPane) {
     const tolerance = 1;  
@@ -25,13 +163,11 @@ function adjacent_panes(selectedPane) {
     };
 
     const selectedPaneRect = selectedPane.getBoundingClientRect()
-    // console.log(`Selected Pane left: ${selectedPaneRect.left}, ${selectedPaneRect.right}, ${selectedPaneRect.top}, ${selectedPaneRect.bottom}`)
 
     const panes = Array.from(document.getElementsByClassName("pane"));
     panes.forEach(pane => {
         if (pane != selectedPane) {
             const paneRect = pane.getBoundingClientRect()
-            // console.log(`Other Pane left: ${paneRect.left}, ${paneRect.right}, ${paneRect.top}, ${paneRect.bottom}`)
     
             if (Math.abs(paneRect.top - selectedPaneRect.bottom) <= tolerance) {
                 adjacentPanes.bottom.push(pane);
@@ -66,64 +202,6 @@ function pane_listeners(pane) {
     });
 }
 
-function exportPanePositions() {
-    const term_window = document.getElementsByClassName("termWindow")[0];
-    const term_window_height = term_window.offsetHeight;
-    const term_window_width = term_window.offsetWidth;
-    const panes = term_window.getElementsByClassName("pane");
-    let paneData = [];
-
-    for (let i = 0; i < panes.length; i++) {
-        const pane = panes[i];
-        const pane_rect = pane.getBoundingClientRect();
-
-        const paneInfo = {
-            top: ((pane_rect.top - term_window.getBoundingClientRect().top) / term_window_height) * 100 + '%',
-            left: ((pane_rect.left - term_window.getBoundingClientRect().left) / term_window_width) * 100 + '%',
-            width: (pane.offsetWidth / term_window_width) * 100 + '%',
-            height: (pane.offsetHeight / term_window_height) * 100 + '%',
-            content: pane.textContent  // Optional: To store the content of the pane as well
-        };
-        paneData.push(paneInfo);
-    }
-
-    return JSON.stringify(paneData);
-}
-
-function importPanePositions(paneDataJSON) {
-    const term_window = document.getElementsByClassName("termWindow")[0];
-    
-    // Clear existing panes before loading
-    const existingPanes = term_window.getElementsByClassName("pane");
-    while(existingPanes.length > 0) {
-        existingPanes[0].remove();  // Remove existing panes
-    }
-
-    // Parse the JSON
-    const paneData = JSON.parse(paneDataJSON);
-
-    // Create panes with the stored properties
-    paneData.forEach((paneInfo, index) => {
-        var newPane = document.createElement("div");
-        newPane.className = "pane";
-        newPane.style.position = "absolute";
-        newPane.style.top = paneInfo.top;
-        newPane.style.left = paneInfo.left;
-        newPane.style.width = paneInfo.width;
-        newPane.style.height = paneInfo.height;
-        newPane.textContent = paneInfo.content || "Pane " + (index + 1);  // Default content or use saved content
-
-        // Add event listener to allow selecting panes
-        newPane.addEventListener('click', () => {
-            selected_pane(newPane);
-        });
-
-        term_window.appendChild(newPane);
-    });
-}
-
-
-
 function split_vert() {
     const term_window = document.getElementsByClassName("termWindow")[0]
     const term_window_height = term_window.offsetHeight;
@@ -146,21 +224,15 @@ function split_vert() {
     activePane.style.height = selected_pane_height + '%';  // Set height in pixels
 
     // New pane
-    var newPane = document.createElement("div");
+    var newPane = create_new_pane();
 
     // Optionally, set some content or attributes for the div
-    newPane.style.position = "absolute";
-    newPane.className = "pane";  // Set class
     newPane.style.width = split_width + '%';  // Set width in pixels
     newPane.style.height = selected_pane_height + '%';  // Set height in pixels
     newPane.style.left = distance_select_from_left + split_width + '%';     // Set the left position in pixels
     newPane.style.top = distance_select_from_top + '%';
-    newPane.textContent = "NEW " + num 
-    num = num + 1;
-    newPane.addEventListener('click', () => {
-        selected_pane(newPane);
-    });
     term_window.appendChild(newPane)
+    return get_pane_name(newPane)
 }
 
 function split_hor() {
@@ -185,21 +257,96 @@ function split_hor() {
     activePane.style.height = split_height + '%';  // Set height to half the original
 
     // New pane
-    var newPane = document.createElement("div");
+    var newPane = create_new_pane();
 
     // Optionally, set some content or attributes for the div
-    newPane.style.position = "absolute";
-    newPane.className = "pane";  // Set class
     newPane.style.width = selected_pane_width + '%';  // Set width unchanged
     newPane.style.height = split_height + '%';  // Set height to half the original
     newPane.style.left = distance_select_from_left + '%';  // Keep the same horizontal position
     newPane.style.top = distance_select_from_top + split_height + '%';  // Adjust top position
-    newPane.textContent = "NEW " + num;
-    num = num + 1;
-    newPane.addEventListener('click', () => {
-        selected_pane(newPane);
-    });
     term_window.appendChild(newPane);
+    return get_pane_name(newPane)
+}
+
+function split(dir) {
+    if (dir == "horizontal") {
+        let parent = get_selected_pane_name()
+        let child = split_hor()
+        update_split_pane_config(parent, child, "horizontal")
+    }
+    else if (dir == "vertical") {
+        let parent = get_selected_pane_name()
+        let child = split_vert()
+        update_split_pane_config(parent, child, "vertical")
+    }
+}
+
+function export_pane_config() {
+    const config_json_str = JSON.stringify(pane_config);
+    return config_json_str
+}
+
+function get_panes_from_config_helper(pane_config, panes) {
+        // Base case: Check if the current pane's name matches the target name
+        if (pane_config.node === true) {
+            panes.push(pane_config)
+            // return pane_config;
+        }
+    
+        // Recursively search through branch array
+        for (let branchItem of pane_config.branch) {
+            let foundPane = get_panes_from_config_helper(branchItem, panes);
+            if (foundPane) {
+                return foundPane; // Return if match found in the branch
+            }
+        }
+}
+
+function get_panes_from_config(pane_config) {
+    let panes = []
+    get_panes_from_config_helper(pane_config, panes)
+    return panes
+}
+
+function import_pane_config(config_json_str) {
+    const term_window = document.getElementsByClassName("termWindow")[0]
+    term_window.innerHTML = "";  // Remove all panes inside the term window   
+
+    let imported_paned_config = JSON.parse(config_json_str);
+    let panes_to_add = get_panes_from_config(imported_paned_config);
+    
+    panes_to_add.forEach(pane => {
+
+        // Make Pane
+        var newPane = document.createElement("div");
+    
+        newPane.style.position = "absolute";
+        newPane.className = "pane";  // Set class
+        newPane.dataset.order = String(pane.name).replace("pane", "")
+        newPane.textContent = "new" + newPane.dataset.order;
+        newPane.addEventListener('click', () => {
+            selected_pane(newPane);
+        });
+
+        // Optionally, set some content or attributes for the div
+        newPane.style.width = String(pane.width) + '%';  // Set width in pixels
+        newPane.style.height = String(pane.height) + '%';  // Set height in pixels
+        
+        if (pane.posL === 0){
+            newPane.style.left = 0;  
+        } else {
+            newPane.style.left = String(pane.posL) + '%';  
+        }
+
+        if (pane.posT === 0){
+            newPane.style.top = 0;  
+        } else {
+            newPane.style.top = String(pane.posT) + '%';  
+        }
+ 
+        term_window.appendChild(newPane)
+    });
+
 }
 
 function move_panes(direction) {
@@ -283,16 +430,23 @@ document.addEventListener('keydown', function(event) {
     // Splitting Panes
     if (event.ctrlKey && event.shiftKey && event.code === 'KeyE') {
         event.preventDefault(); // Prevent the default action if needed
-        split_vert();
-        // console.log(exportPanePositions());
-
+        split("vertical")
     }
     if (event.ctrlKey && event.shiftKey && event.code === 'KeyO') {
         event.preventDefault(); // Prevent the default action if needed
-        split_hor();
-        // console.log(exportPanePositions());
-
+        split("horizontal");
     }
+
+    if (event.ctrlKey && event.shiftKey && event.code === 'KeyV') {
+        event.preventDefault(); // Prevent the default action if needed
+        import_pane_config(export_pane_config())
+    }    
+    if (event.ctrlKey && event.shiftKey && event.code === 'KeyX') {
+        event.preventDefault(); // Prevent the default action if needed
+        console.log("Remove Pane")
+        remove_pane()
+        import_pane_config(export_pane_config())
+    }    
 
     // Changing Panes
     if (event.altKey && event.code === 'ArrowUp') {
