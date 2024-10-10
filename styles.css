@@ -1,10 +1,11 @@
 :root {
     --border_width: 10px;
     --tab_height: 8vh;
+    --border_color: rgb(129, 129, 129);
 }
 
-html *{
-    background-color: black;
+html * {
+    background-color: rgb(0, 0, 0);
     padding: 0;
     margin: 0;
     color: white;
@@ -15,11 +16,22 @@ html *{
 }
 
 .tab {
+    box-sizing: border-box;
     background-color: rgb(0, 0, 0);
+    border-bottom: var(--border_width) solid black;
     height: var(--tab_height);
 }
 
+.tabbar {
+    box-sizing: border-box;
+    border: calc(var(--border_width)/2) solid var(--border_color);
+    height: calc(var(--tab_height) - (var(--border_width)));
+
+}
+
 .termWindow {
+    box-sizing: border-box;
+    display: grid;
     position: relative;
     background-color: rgb(0, 0, 0);
     height: calc(100vh - var(--tab_height));
@@ -27,12 +39,28 @@ html *{
 
 .pane {
     box-sizing: border-box;
-    position: relative;
-    height: 100%;
-    border: var(--border_width) solid rgb(39, 39, 39);
+    position: static;
     background-color: rgb(0, 0, 0);
+    border: calc(var(--border_width)/2) solid var(--border_color);
 }
+
 
 .selected {
     border-color: rgb(255, 255, 255);
+}
+
+.split-vertical {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--border_width);
+    height: 100%;
+    width: 100%;
+}
+
+.split-horizontal {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    gap: var(--border_width);
+    height: 100%;
+    width: 100%;
 }
