@@ -10,6 +10,8 @@ document.addEventListener('keydown', function(event) {
         // TODO 
         console.log(tree.selected)
         tree.split_pane(tree.selected, "vertical");
+        // change selected to the new pane
+        
         console.log(tree.print_tree());
         tree.update_window();
     }

@@ -21,7 +21,7 @@ export class TermTree {
         this.root = new Pane("0-pane");
         this.paneCounter = 0;
         this.splitCounter = 0;
-        this.selected = null; 
+        this.selected = null;
         this.add_pane_listeners()
 
         // Add functions
@@ -204,7 +204,7 @@ export class TermTree {
             return 0;
         });
 
-            
+
         return neighbors;
 
     }
@@ -259,10 +259,26 @@ export class TermTree {
         }
     }
 
+    // reset the tree
+
+        reset_tree() {
+        console.log("Resetting tree...");
+        this.root = new Pane("0-pane");
+        this.paneCounter = 0;
+        this.splitCounter = 0;
+        this.selected = null;
+        console.log("Tree after reset:", this.print_tree());
+        this.update_window();
+    }
+    
+
     // delete a pane
     remove_pane(name) {
         if (name === this.root.name) {
-            console.log("Can not remove root pane");
+            // reset the whole tree
+            this.reset_tree()
+            // make selected pane the root
+            this.selected_pane(this.root.name);
             return
         }
 
@@ -296,7 +312,7 @@ export class TermTree {
         if (parent === this.root) {
             // make the sibling the new root
             this.root = sibling;
-        
+
         } else {
 
             // move sibling to grand parent
@@ -430,6 +446,7 @@ export class TermTree {
         // along with a new pane to the parent pane
 
         let pane_being_split = this.find_node(name);
+        let new_pane_name = null;
 
         if (pane_being_split === this.root) {
             // add a split pane to root
@@ -455,7 +472,7 @@ export class TermTree {
             this.root.children.push(pane_being_split);
 
             // add new pane to split pane
-            this.add_new_pane(split_pane.name, "back");
+            new_pane_name = this.add_new_pane(split_pane.name, "back");
 
 
         } else {
@@ -479,8 +496,12 @@ export class TermTree {
             this.move_pane(pane_being_split.name, split_pane);
 
             // Add a new pane to the split pane
-            this.add_new_pane(split_pane);
+            new_pane_name = this.add_new_pane(split_pane);
         }
+        console.log("Splitting pane", name, "into", new_pane_name);
+
+        // change selected to new pane
+        this.selected = new_pane_name;
     }
 
     // turn tree into lists of nodes in levels
@@ -529,7 +550,7 @@ export class TermTree {
     name_to_pane(name) {
         return document.querySelector(`[data-name="${name}"]`);
     }
-    
+
     selected_pane(pane) {
         let new_selected = this.name_to_pane(pane);
         let old_selected = this.name_to_pane(this.selected);
@@ -540,9 +561,9 @@ export class TermTree {
         this.selected = pane;
         new_selected.classList.add('selected');
     }
-    
+
     pane_listeners(pane) {
-    
+
         pane.addEventListener('click', () => {
             this.selected_pane(pane.dataset.name);
         });
@@ -592,23 +613,30 @@ export class TermTree {
                 // check if the node is a pane
                 else if (type === "pane") {
                     // Add div content
-                    new_node.textContent = order;
+                    new_node.innerHTML = node.content;
 
                 }
-
-                // add pane to parent
-                // selected based on data-name
-                let parent = termWindow.querySelector(`[data-name="${node.parent.name}"]`);
-                if (parent === null) {
-                    parent = termWindow;
+                // check if pane is root 
+                if (node.parent === null) {
+                    // add pane to termWindow
+                    termWindow.appendChild(new_node);
+                } else {
+                    // add pane to parent
+                    // selected based on data-name
+                    let parent = termWindow.querySelector(`[data-name="${node.parent.name}"]`);
+                    if (parent === null) {
+                        parent = termWindow;
+                    }
+                    parent.appendChild(new_node);
                 }
-                parent.appendChild(new_node);
             }
 
         }
         // update panes to have listeners
         this.add_pane_listeners()
         // keep selected pane selected
-        this.selected_pane(this.selected);
+        if (this.selected !== null) {
+            this.selected_pane(this.selected);
+        }
     }
 }
