@@ -40,7 +40,7 @@ export class TermTree {
 
             return newPane.name;
         } else {
-            console.log("Parent not found");
+            console.log("add_node: Parent not found");
         }
     }
 
@@ -67,7 +67,7 @@ export class TermTree {
                 console.log("Child not found");
             }
         } else {
-            console.log("Parent not found");
+            console.log("remove_node: Parent not found");
         }
     }
 
@@ -85,6 +85,266 @@ export class TermTree {
         }
         return null;
     }
+
+    // detrmine if a panes border is touching the border of another pane
+
+
+    // get neighbors of a pane, based on the direction they are to it
+    get_neighbors(name) {
+
+        let neighbors = {
+            "left": [],
+            "right": [],
+            "up": [],
+            "down": []
+        }
+
+        if (this.selected === this.root.name) {
+            return neighbors
+        }
+
+
+        // get panes position of border
+        // get pane div
+        let selected_div = this.name_to_pane(name);
+        // get edge dimensions
+        let selected_edges = selected_div.getBoundingClientRect();
+
+        // get all the panes in the tree
+        let panes = this.get_panes();
+
+        // go through each pane
+        for (let neighbor of panes) {
+            // get neighbor div
+            let neighbor_div = this.name_to_pane(neighbor);
+            // get edge dimensions
+            let neighbor_edges = neighbor_div.getBoundingClientRect();
+
+            // get css variable for grid gap from :root 
+            let root = document.documentElement;
+            let grid_gap = getComputedStyle(root).getPropertyValue('--border_width');
+            // convert to number
+            grid_gap = parseInt(grid_gap);
+            // That will be the tolerance for the border to be considered touching
+            let tolerance = grid_gap + .01;
+
+            // check if the neighbor is to the left
+            if (Math.abs(selected_edges.left - neighbor_edges.right) < tolerance) {
+                // make sure the neighbor side is touching the selected side
+                if (selected_edges.top < neighbor_edges.bottom && selected_edges.bottom > neighbor_edges.top) {
+                    neighbors.left.push(neighbor);
+                }
+            }
+            // check if the neighbor is to the right
+            if (Math.abs(selected_edges.right - neighbor_edges.left) < tolerance) {
+                // make sure the neighbor side is touching the selected side
+                if (selected_edges.top < neighbor_edges.bottom && selected_edges.bottom > neighbor_edges.top) {
+                    neighbors.right.push(neighbor);
+                }
+            }
+
+            // check if the neighbor is above
+            if (Math.abs(selected_edges.top - neighbor_edges.bottom) < tolerance) {
+                // make sure the neighbor side is touching the selected side
+                if (selected_edges.left < neighbor_edges.right && selected_edges.right > neighbor_edges.left) {
+                    neighbors.up.push(neighbor);
+                }
+            }
+
+            // check if the neighbor is below
+            if (Math.abs(selected_edges.bottom - neighbor_edges.top) < tolerance) {
+                // make sure the neighbor side is touching the selected side
+                if (selected_edges.left < neighbor_edges.right && selected_edges.right > neighbor_edges.left) {
+                    neighbors.down.push(neighbor);
+                }
+            }
+        }
+
+        // order each neighbor direction to be in order of most left, right, up, down
+
+        // sort left neighbors based on the most top
+        // make it sorted based on the neighbors top edge
+        neighbors.left = neighbors.left.sort((a, b) => {
+            let a_div = this.name_to_pane(a);
+            let b_div = this.name_to_pane(b);
+            if (a_div && b_div) {
+                return a_div.getBoundingClientRect().top - b_div.getBoundingClientRect().top;
+            }
+            return 0;
+        });
+
+        // sort right neighbors based on the most top
+        // make it sorted based on the neighbors top edge
+        neighbors.right = neighbors.right.sort((a, b) => {
+            let a_div = this.name_to_pane(a);
+            let b_div = this.name_to_pane(b);
+            if (a_div && b_div) {
+                return a_div.getBoundingClientRect().top - b_div.getBoundingClientRect().top;
+            }
+            return 0;
+        });
+
+        // make top neighbors sorted based on the neighbors left edge
+        neighbors.up = neighbors.up.sort((a, b) => {
+            let a_div = this.name_to_pane(a);
+            let b_div = this.name_to_pane(b);
+            if (a_div && b_div) {
+                return a_div.getBoundingClientRect().left - b_div.getBoundingClientRect().left;
+            }
+            return 0;
+        });
+
+        // make bottom neighbors sorted based on the neighbors left edge
+        neighbors.down = neighbors.down.sort((a, b) => {
+            let a_div = this.name_to_pane(a);
+            let b_div = this.name_to_pane(b);
+            if (a_div && b_div) {
+                return a_div.getBoundingClientRect().left - b_div.getBoundingClientRect().left;
+            }
+            return 0;
+        });
+
+            
+        return neighbors;
+
+    }
+
+    // get sibling of a pane
+    get_sibling(name) {
+        // get parent
+        let parent = this.find_node(name).parent;
+        let sibling = null;
+        for (let child of parent.children) {
+            if (child.name !== name) {
+                sibling = child;
+
+            }
+            console.log(child.name)
+        }
+        return sibling;
+    }
+
+    sibling_direction(name) {
+        // get pane
+        let pane = this.find_node(name);
+
+        // get parent
+        let parent = pane.parent;
+
+        // get sibling
+        let sibling = this.get_sibling(name);
+
+        // if parent is a vertical split
+        if (parent.name.includes("vertical")) {
+            // get index of sibling
+            let index = parent.children.findIndex(child => child.name === sibling.name);
+            // check if sibling is to the left or right
+            if (index < parent.children.findIndex(child => child.name === name)) {
+                return "left";
+            } else {
+                return "right";
+            }
+        }
+
+        // if parent is a horizontal split
+        if (parent.name.includes("horizontal")) {
+            // get index of sibling
+            let index = parent.children.findIndex(child => child.name === sibling.name);
+            // check if sibling is to the up or down
+            if (index < parent.children.findIndex(child => child.name === name)) {
+                return "up";
+            } else {
+                return "down";
+            }
+        }
+    }
+
+    // delete a pane
+    remove_pane(name) {
+        if (name === this.root.name) {
+            console.log("Can not remove root pane");
+            return
+        }
+
+        // get split parent
+        let parent = this.find_node(name).parent;
+
+        // get the parent of the split
+        let grand_parent = parent.parent;
+
+        // get the index of the parent in the grand parent
+        let index = grand_parent.children.findIndex(child => child.name === parent.name);
+
+        // remove the pane from the parent
+        this.remove_node(name);
+
+        // get siblings of the pane being removed
+        // Note that it should not be the pane being removed
+        let sibling = this.get_sibling(name)
+
+        // get direction of sibling to pane being removed
+        let direction = this.sibling_direction(name);
+        console.log("direction:")
+        console.log(direction)
+
+        // change selected
+        this.change_selected(direction);
+
+
+        // log all the information:
+
+        if (parent === this.root) {
+            // make the sibling the new root
+            this.root = sibling;
+        
+        } else {
+
+            // move sibling to grand parent
+            this.move_pane(sibling.name, grand_parent.name);
+
+            // remove the parent
+            this.remove_node(parent.name, grand_parent.name);
+
+            // make the sibling in the same pistion as the deleted parent
+            // get current index
+            let sibling_index = grand_parent.children.findIndex(child => child.name === sibling.name);
+
+            if (sibling_index !== index) {
+                // switch the children positions
+                let temp = grand_parent.children[index];
+                grand_parent.children[index] = grand_parent.children[sibling_index];
+                grand_parent.children[sibling_index] = temp;
+            }
+        }
+
+        // update window
+        this.update_window();
+    }
+
+    // change selected pane based on direction
+    change_selected(direction) {
+        let neighbors = this.get_neighbors(this.selected);
+        let new_selected = null;
+        switch (direction) {
+            case "up":
+                new_selected = neighbors.up[0];
+                break;
+            case "down":
+                new_selected = neighbors.down[0];
+                break;
+            case "left":
+                new_selected = neighbors.left[0];
+                break;
+            case "right":
+                new_selected = neighbors.right[0];
+                break;
+        }
+
+        if (new_selected) {
+            this.selected_pane(new_selected);
+        }
+    }
+
 
     // Print the tree
     print_tree(pane = this.root, level = 0) {
@@ -238,7 +498,24 @@ export class TermTree {
             current_level++;
         }
 
+        // remove empty levels
+        levels = levels.filter(level => level.length > 0)
+
         return levels;
+    }
+
+    // get all panes in the tree
+    get_panes() {
+        let panes = [];
+        let levels = this.tree_to_levels();
+        for (let level of levels) {
+            for (let node of level) {
+                if (node.name.includes("pane")) {
+                    panes.push(node.name);
+                }
+            }
+        }
+        return panes;
     }
 
     add_pane_listeners() {

@@ -31,6 +31,7 @@ document.addEventListener('keydown', function(event) {
     if (event.ctrlKey && event.shiftKey && event.code === 'KeyX') {
         event.preventDefault(); // Prevent the default action if needed
         console.log("Remove Pane")
+        tree.remove_pane(tree.selected);
         // TODO 
     }    
     if (event.ctrlKey && event.shiftKey && event.code === 'KeyI') {
@@ -42,21 +43,34 @@ document.addEventListener('keydown', function(event) {
     // Changing Panes
     if (event.altKey && event.code === 'ArrowUp') {
         event.preventDefault(); // Prevent the default action if needed
+        tree.change_selected("up");
+        // get up neighbors
         // TODO 
     }
 
     if (event.altKey && event.code === 'ArrowDown') {
         event.preventDefault(); // Prevent the default action if needed
+        tree.change_selected("down");
         // TODO 
     }
 
     if (event.altKey && event.code === 'ArrowLeft') {
         event.preventDefault(); // Prevent the default action if needed
+        tree.change_selected("left");
+        
         // TODO 
     }
 
     if (event.altKey && event.code === 'ArrowRight') {
         event.preventDefault(); // Prevent the default action if needed
+        tree.change_selected("right");
         // TODO 
+    }
+
+    // console log neighbors
+    if (event.altKey && event.code === 'KeyI') {
+        console.log("INFO:")
+        event.preventDefault(); // Prevent the default action if needed
+        console.log(tree.get_neighbors(tree.selected));
     }
 });

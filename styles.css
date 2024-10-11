@@ -1,7 +1,7 @@
 :root {
     --border_width: 10px;
     --tab_height: 8vh;
-    --border_color: rgb(129, 129, 129);
+    --border_color: rgb(36, 36, 36);
 }
 
 html * {
@@ -46,7 +46,7 @@ html * {
 
 
 .selected {
-    border-color: rgb(255, 255, 255);
+    border-color: rgb(80, 80, 80);
 }
 
 .split-vertical {
